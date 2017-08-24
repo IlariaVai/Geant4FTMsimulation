@@ -1,0 +1,75 @@
+Geant4 application to study x-ray interactions in an FTM detector.
+The application was developed with geant4.9.6.p02. 
+
+The source files are placed in the TrGEMG4/trunk directory.
+The main file is  TrGEMG4.cc, were you can set the physics list (we use FTFP_BERT_HP),
+the DetectorConstruction class and the PrimaryGeneratorAction class.
+
+The geometry is described in the GasDetectorConstructor class. It consists of a stack of 10 x 10 cm^2 foils of different
+materials and thickness, laying on the xy plane:
+
+- FakeBottom - 0.01 mm thick air layer (it's a "fake detector" used to register particles reaching the detector surface)
+- FR4_1 - 500 um thick FR4 foil
+- Cu  -  35 um Cu foil
+- FR4_2 - 200 um thick FR4 foil
+- FakeTop - 0.01 mm thick air layer (similar to FakeBottom)
+
+The center of the coordinate system is placed at the center of FakeBottom external surface.  
+All the volumes are defined as sensitive detectors. Particle steps whithin these volumes are processed by the
+GasGapSensitiveDetector class, that extracts useful informations that will be registered in the output file. 
+
+At present only one generator is implemented in the application, named ParallelPrimaryGeneratorActionScan. For each event, 
+a gamma particle is fired from (0,0,-1*mm) towards the detector surface along the z axis and will impact ortogonally at the
+center of the detector. The energy of the primary particle is set at runtime through the FTMsimulation.mac file
+(for the moment it is set at 22.5 keV). 
+
+Instructions to run: 
+Modify the file paths contained in the following files to make them consistent with your environment:
+- TrGEMG4-build/build.sh
+
+Move in the TrGEMG4-build directory and compile the application by doing
+>./build.sh 
+>make
+
+To run do
+>./TrGEMG4 FTMsimulation.mac
+
+Notice that  FTMsimulation.mac contains the settings for the tracking cuts, the number of events per run, the primary
+particle energy. It is important to set the cut for protons to 0 if you deal with neutrons.  
+
+In the output root file (task.root) you can find a tree MyRun containing:
+
+*  Edep - it's an array with 3 elements, containing the total energy deposited in the event inside FR4_1, Cu and FR4_2 respectively. 
+*  primaryAcceptance - it's a boolean that is set to 1 if the primary particle has reached the FakeBottom, 0 otherwise. In this
+configuration it must be always one, but in case of more complex sources it can be used to define acceptance.
+*  eleGap - it's a boolean that is set to 1 if there is at least one electron reaching the FakeTop (i.e. potentially a signal
+inside the detector gas gap), 0 otherwise.  
+*  chargeGap - it's a boolean that is set to 1 if there is at least one charged particle reaching the FakeTop (i.e. potentially a signal
+inside the detector gas gap), 0 otherwise.  
+*  primaryEne - the energy of the primary particle when entering the FakeBottom
+*  primaryPosX, primaryPosY, primaryPosZ - position of primary particle when entering the FakeBottom
+*  primaryPX, primaryPY, primaryPZ - momentum components of the  primary particle when entering the FakeBottom
+*  primaryPdirX, primaryPdirY, primaryPdirZ - momentum direction components of the  primary particle when entering the FakeBottom
+*  zAbsorption - z coordinate where the primary gamma gets absorbed. If it is not absorbed, it is set to -5 mm. 
+*  volAbsorption - name of the volume where the primary gamma gets absorbed. If it is not absorbed, it is set to "none"
+*  Vectors storing informations of the particles steps. A step is registered only if it is the first step of a particle in a new
+volume. Therefore, for instance, a gamma that goes through the detector without iteractions will appear in five steps, one for each
+sensitive volumes.   
+  - TrackIndex (track nunber, for the primary particle it is equal to 1)
+  - TrackPart (particle pdgId) 
+  - TrackParent (track number of the mother)  
+  - TrackIsPrimary ( -1 for the primary particle, 1 for particles that have been generated directly by the primary particle, 0 for
+  particles generated in secondary processes) 
+  - TrackGenProcess ( process that generated the particle, according to the Geant4 naming convention. )
+  - TrackGenVolume (logical volume where the particle was generated) 
+  - TrackGenZ (z coordinate where the particle was generated) 
+  - TrackVolume (volume of the step )
+  - TrackEne (kinetinc energy of the particle at  the step)
+  - TrackPosX, TrackPosY, TrackPosZ (position of the step)
+  - TrackPX, TrackPY, TrackPZ ( momentum of the particle at the step)
+  - TrackPdirX, TrackPdirY, TrackPdirZ ( momentum direction of the particle at the step)
+ 
+ The script runThickscan.sh automatically produces different runs varying the thickness of the FR4_1 layer. You'll have to correct
+ the path of the GasDetectorConstruction.cc file to make it work.
+ The macro runFTManalysis.C is an example that shows how to read the task.root file, access useful information and produce some plots. 
+  

@@ -1,0 +1,54 @@
+
+#
+# simple.mac
+# simple commands
+#
+# to read user's data file
+#
+#----
+#/vis/open OGL 600x600-0+0
+#/vis/drawVolume
+#/vis/viewer/zoom 2
+#/vis/viewer/set/viewpointVector -1 0 0
+#/vis/viewer/set/lightsVector -1 0 0
+#/vis/viewer/set/style wireframe
+#/vis/viewer/set/auxiliaryEdge true
+#/vis/viewer/set/lineSegmentsPerCircle 100
+#/vis/scene/add/scale   # Simple scale line
+#/vis/scene/add/axes    # Simple axes: x=red, y=green, z=blue.
+#----
+#/vis/geometry/set/visibility World 0 false
+#/vis/geometry/set/visibility Envelope 0 false
+#/vis/viewer/set/style surface
+#----
+#/vis/viewer/set/hiddenMarker true
+#/vis/viewer/set/viewpointThetaPhi 120 150
+#----
+
+#/vis/scene/add/hits
+#/vis/scene/add/trajectories
+
+#/gun/particle neutron
+#/gun/particle mu-
+/gun/energy 22.5 keV
+
+/run/verbose 0
+/run/dumpRegion 2
+/event/verbose 0
+#/tracking/verbose 2
+/tracking/verbose 0
+
+#/analysis/setFileName range
+#/analysis/h1/se 3 200 0 4 mm	# csda range
+
+/run/setCutForAGivenParticle gamma 1 um
+/run/setCutForAGivenParticle e- 1 nm
+/run/setCutForAGivenParticle e+ 1 um
+/run/setCutForAGivenParticle proton 0 um
+
+/run/particle/dumpCutValues
+
+/run/beamOn  5
+#/run/beamOn  1000000
+
+
